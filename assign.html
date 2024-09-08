@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Match Assigner</title>
+</head>
+<body>
+    <textarea rows="10" cols="40" placeholder="Line separated team members"></textarea>
+    <br/>
+    <label for="match_count"># of matches</label>
+    <input id="match_count" type="number">
+    <br/>
+    <label for="session_length">Preferred session length</label>
+    <input id="session_length" type="number">
+    <br/>
+    <button onclick="go()">GO</button>
+
+    <div id="output"></div>
+
+    <script>
+        document.querySelector("textarea").value = "a\nb\nc\nd\ne\nf\ng\nh\ni"
+        document.querySelector("#match_count").value = "60"
+        document.querySelector("#session_length").value = "10"
+        go()
+
+        function go() {
+            let output = document.querySelector("#output")
+            output.innerText = ""
+
+            let teamMembers = document.querySelector("textarea").value.split("\n")
+            for (let i in teamMembers) teamMembers[i] = teamMembers[i].trim()
+
+            let matchesNeeded = parseInt(document.querySelector("#match_count").value) * 6
+
+            let preferredSessionLength = parseInt(document.querySelector("#session_length").value)
+
+            output.innerText += teamMembers.length + " members, " + matchesNeeded + " matches" + ", ~" + matchesNeeded/preferredSessionLength + " sessions\n\n"
+
+
+
+            let sessions = []
+            let memberOn = 0
+            while (sessions.length < matchesNeeded/preferredSessionLength) {
+                sessions.push(teamMembers[memberOn])
+                memberOn = (memberOn + 1) % teamMembers.length
+            }
+            output.innerText += sessions + "\n\n"
+
+            let sessionMatches = []
+            for (let i = 0; i < 6; i++) sessionMatches.push([0, 2 * (i+1), i])
+
+            while (sessionMatches[sessionMatches.length-6][1] < matchesNeeded / 6) {
+                let previous = sessionMatches[sessionMatches.length - 6][1] + 1
+
+                let ending = Math.min(previous + preferredSessionLength, matchesNeeded / 6 - 1)
+                if (ending >= matchesNeeded / 6 - 3) ending = matchesNeeded / 6
+                sessionMatches.push([previous, ending, sessionMatches[sessionMatches.length-6][2]])
+            }
+
+            for (let match of sessionMatches) {
+                match[0]++
+                match[1]++
+                match[1] = Math.min(match[1], matchesNeeded / 6)
+                output.innerText += "[" + match[0] + "," + match[1] + "]" + ", "
+            }
+
+            output.innerText += "\n\n----- Final Output -----\n\n"
+
+            for (let m = 0; m < teamMembers.length; m++) {
+                output.innerText += teamMembers[m] + ": "
+                let matchesScouted = 0
+                for (let i = m; i < sessionMatches.length; i += teamMembers.length) {
+                    output.innerText += " [" + sessionMatches[i][0] + "," + sessionMatches[i][1] + "],"
+                    matchesScouted += sessionMatches[i][1] - sessionMatches[i][0] + 1
+                }
+                output.innerText += " " + matchesScouted + " matches\n"
+            }
+
+            let m = {}
+            for (let i = 1; i <= matchesNeeded / 6; i++) {
+                m[i] = 0
+                for (let session of sessionMatches)
+                    if (session[1] >= i && i >= session[0]) m[i]++
+                if (m[i] !== 6) {
+                    output.innerText += "Error, not all matches scouted"
+                    console.log(m)
+                }
+            }
+            output.innerText += "\n\n"
+        }
+    </script>
+</body>
+</html>
