@@ -1,4 +1,4 @@
-document.querySelector("textarea").value = "a\nb\nc\nd\ne\nf\ng\nh\ni"
+document.querySelector("textarea").value = "a\nb\nc\nd\ne\nf\ng\nh\ni(1-20)"
 document.querySelector("#match_count").value = "60"
 document.querySelector("#session_length").value = "10"
 
@@ -12,6 +12,20 @@ function go() {
 
     let teamMembers = document.querySelector("textarea").value.split("\n")
     for (let i in teamMembers) teamMembers[i] = teamMembers[i].trim()
+
+    let restrictions = {}
+    for (let i in teamMembers) {
+        if (teamMembers[i].includes("(")) { // Restriction Detected
+            let restriction = teamMembers[i].substring(teamMembers[i].indexOf("("), teamMembers[i].length).trim().replace("(", "").replace(")", "")
+            restriction = restriction.split(",")
+            for (let i in restriction) {
+                restriction[i] = restriction[i].split("-")
+                for (let x in restriction[i])
+                    restriction[i][x] = restriction[i][x].trim()
+            }
+            console.log(restriction)
+        }
+    }
 
     let matchesNeeded = parseInt(document.querySelector("#match_count").value) * 6
 
@@ -74,7 +88,7 @@ function go() {
     }
     output.innerText += "\n\n"
 
-    avMatchesScouted /= teamMembers.length
-    avMatchesScouted /= teamMembers.length
-    output.innerText += "Average matches scouted per person: " + avMatchesScouted
+    //avMatchesScouted /= teamMembers.length
+    //avMatchesScouted /= teamMembers.length
+    //output.innerText += "Average matches scouted per person: " + avMatchesScouted
 }
