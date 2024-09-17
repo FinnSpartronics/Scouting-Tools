@@ -18,12 +18,13 @@ function go() {
         if (teamMembers[i].includes("(")) { // Restriction Detected
             let restriction = teamMembers[i].substring(teamMembers[i].indexOf("("), teamMembers[i].length).trim().replace("(", "").replace(")", "")
             restriction = restriction.split(",")
-            for (let i in restriction) {
-                restriction[i] = restriction[i].split("-")
-                for (let x in restriction[i])
-                    restriction[i][x] = restriction[i][x].trim()
+            restrictions[i] = []
+            for (let r in restriction) {
+                restriction[r] = restriction[r].split("-")
+                for (let x in restriction[r])
+                    restriction[r][x] = parseInt(restriction[r][x].trim())
+                restrictions[i].push(restriction)
             }
-            console.log(restriction)
         }
     }
 
@@ -64,7 +65,32 @@ function go() {
     else
         output.innerText = " "
 
-    let avMatchesScouted = 0
+    console.log(restrictions)
+    // Returns false if valid, true if not
+    function checkRestrictions(start, end, member) {
+        if (!Object.keys(restrictions).includes("" + member)) return false
+        for (let r in restrictions[member]) {
+            console.log(start, end, r, restrictions[member][r])
+            if (restrictions[member][r][0][0] <= start && end <= restrictions[member][r][0][1]) return false
+        }
+        return true
+    }
+
+    let teamMember = 0;
+    let teamMemberOutputs = {}
+    for (let x = 0; x < teamMembers.length; x++) teamMemberOutputs[x] = teamMembers[x] + ": "
+    for (let m = 0; m < sessionMatches.length; m++) {
+        while (checkRestrictions(sessionMatches[m][0], sessionMatches[m][1], teamMember))
+            teamMember = (teamMember + 1) % teamMembers.length
+        teamMemberOutputs[teamMember] += " [" + sessionMatches[m][0] + "," + sessionMatches[m][1] + "," + sessionMatches[m][2] + "],"
+        teamMember = (teamMember + 1) % teamMembers.length
+    }
+    console.log(teamMemberOutputs)
+
+    for (let x in teamMemberOutputs)
+        output.innerText += teamMemberOutputs[x] + "\n"
+
+    /*let avMatchesScouted = 0
     for (let m = 0; m < teamMembers.length; m++) {
         output.innerText += teamMembers[m] + ": "
         let matchesScouted = 0
@@ -74,7 +100,7 @@ function go() {
         }
         output.innerText += " " + matchesScouted + " matches\n"
         avMatchesScouted += matchesNeeded
-    }
+    }*/
 
     let m = {}
     for (let i = 1; i <= matchesNeeded / 6; i++) {
