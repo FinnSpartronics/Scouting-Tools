@@ -15,16 +15,15 @@ function go() {
 
     let restrictions = {}
     for (let i in teamMembers) {
-        if (teamMembers[i].includes("(")) { // Restriction Detected
-            let restriction = teamMembers[i].substring(teamMembers[i].indexOf("("), teamMembers[i].length).trim().replace("(", "").replace(")", "")
-            restriction = restriction.split(",")
-            restrictions[i] = []
-            for (let r in restriction) {
-                restriction[r] = restriction[r].split("-")
-                for (let x in restriction[r])
-                    restriction[r][x] = parseInt(restriction[r][x].trim())
-                restrictions[i].push(restriction)
+        if (teamMembers[i].includes("(")) {
+            let unfiltered = teamMembers[i].substring(teamMembers[i].indexOf("("), teamMembers[i].length).trim().replace("(", "").replace(")", "")
+            let split = unfiltered.split(",")
+            for (let filter in split) {
+                split[filter] = split[filter].split("-")
+                split[filter][0] = parseInt(split[filter][0].trim())
+                split[filter][1] = parseInt(split[filter][1].trim())
             }
+            restrictions[i] = split
         }
     }
 
@@ -68,12 +67,13 @@ function go() {
     console.log(restrictions)
     // Returns false if valid, true if not
     function checkRestrictions(start, end, member) {
-        if (!Object.keys(restrictions).includes("" + member)) return false
-        for (let r in restrictions[member]) {
-            console.log(start, end, r, restrictions[member][r])
-            if (restrictions[member][r][0][0] <= start && end <= restrictions[member][r][0][1]) return false
-        }
-        return true
+        if (Object.keys(restrictions).includes("" + member)) {
+            let list = restrictions["" + member]
+            for (let filter of list) {
+                if (start >= filter[0] && end <= filter[1]) return false;
+            }
+            return true;
+        } else return false;
     }
 
     let teamMember = 0;
