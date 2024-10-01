@@ -29,7 +29,7 @@ function go() {
 
     let matchesNeeded = parseInt(document.querySelector("#match_count").value) * 6
 
-    let preferredSessionLength = parseInt(document.querySelector("#session_length").value)
+    let preferredSessionLength = parseInt(document.querySelector("#session_length").value) - 1
 
     output.innerText += teamMembers.length + " members, " + matchesNeeded + " matches" + ", ~" + matchesNeeded/preferredSessionLength + " sessions\n\n"
 
@@ -78,43 +78,59 @@ function go() {
 
     let teamMember = 0;
     let teamMemberOutputs = {}
-    for (let x = 0; x < teamMembers.length; x++) teamMemberOutputs[x] = teamMembers[x] + ": "
+    let teamMemberSessions = {}
+    for (let x = 0; x < teamMembers.length; x++) {
+        teamMemberOutputs[x] = teamMembers[x] + ": "
+        teamMemberSessions[x] = []
+    }
     for (let m = 0; m < sessionMatches.length; m++) {
         while (checkRestrictions(sessionMatches[m][0], sessionMatches[m][1], teamMember))
             teamMember = (teamMember + 1) % teamMembers.length
         teamMemberOutputs[teamMember] += " [" + sessionMatches[m][0] + "," + sessionMatches[m][1] + "," + sessionMatches[m][2] + "],"
+        teamMemberSessions[teamMember].push(sessionMatches[m])
         teamMember = (teamMember + 1) % teamMembers.length
     }
     console.log(teamMemberOutputs)
 
-    for (let x in teamMemberOutputs)
-        output.innerText += teamMemberOutputs[x] + "\n"
-
-    /*let avMatchesScouted = 0
-    for (let m = 0; m < teamMembers.length; m++) {
-        output.innerText += teamMembers[m] + ": "
-        let matchesScouted = 0
-        for (let i = m; i < sessionMatches.length; i += teamMembers.length) {
-            output.innerText += " [" + sessionMatches[i][0] + "," + sessionMatches[i][1] + "," + sessionMatches[i][2] + "],"
-            matchesScouted += sessionMatches[i][1] - sessionMatches[i][0] + 1
-        }
-        output.innerText += " " + matchesScouted + " matches\n"
-        avMatchesScouted += matchesNeeded
-    }*/
-
-    let m = {}
-    for (let i = 1; i <= matchesNeeded / 6; i++) {
-        m[i] = 0
-        for (let session of sessionMatches)
-            if (session[1] >= i && i >= session[0]) m[i]++
-        if (m[i] !== 6) {
-            output.innerText += "Error: match " + i + " is missing at least one scouter. \n"
-            console.log(m)
-        }
+    let missedMatchesTest = {}
+    for (let i = 1; i <= matchesNeeded/6; i++) {
+        missedMatchesTest[i] = 0
     }
+
+    for (let x in teamMemberSessions) {
+        let name = teamMembers[x]
+        if (name.includes("(")) name = name.substring(0, name.indexOf("(")).trim()
+        output.innerText += name + ": "
+        
+        let matchesScouted = 0
+        let lastMatch = -100;
+        let overlap = false;
+
+        for (let session of teamMemberSessions[x]) {
+            output.innerText += " " + JSON.stringify(session) + ","
+            matchesScouted += session[1] - session[0] + 1
+            for (let i = session[0]; i <= session[1]; i++) {
+                missedMatchesTest[i]++;
+            }
+
+            if (lastMatch > session[1]) overlap = true;
+            lastMatch = session[1]
+        }
+
+        output.innerText += " (" + matchesScouted + " matches)"
+        if (overlap)
+            output.innerText += "     (OVERLAP)"
+        output.innerText += "\n"
+        
+    }
+
     output.innerText += "\n\n"
 
-    //avMatchesScouted /= teamMembers.length
-    //avMatchesScouted /= teamMembers.length
-    //output.innerText += "Average matches scouted per person: " + avMatchesScouted
+    for (let x in missedMatchesTest) {
+        if (missedMatchesTest[x] !== 6)
+            output.innerText += "Match " + x + " is being scouted " + missedMatchesTest[x] + " times.\n"
+    }
+
+    
+
 }
