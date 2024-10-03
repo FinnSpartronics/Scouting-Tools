@@ -1,4 +1,5 @@
-document.querySelector("textarea").value = "a\nb\nc\nd\ne\nf\ng\nh\ni(1-20)"
+document.querySelector("textarea#members").value = "a\nb\nc\nd\ne\nf\ng\nh\ni(1-20)"
+document.querySelector("textarea#positions").value = "1\n2\n3\n4\n5\n6"
 document.querySelector("#match_count").value = "60"
 document.querySelector("#session_length").value = "10"
 
@@ -12,6 +13,10 @@ function go() {
 
     let teamMembers = document.querySelector("textarea").value.split("\n")
     for (let i in teamMembers) teamMembers[i] = teamMembers[i].trim()
+
+    let positions = document.querySelector("textarea#positions").value.split("\n")
+    for (let x of positions) x = x.trim()
+    console.log(positions)
 
     let restrictions = {}
     for (let i in teamMembers) {
@@ -27,7 +32,7 @@ function go() {
         }
     }
 
-    let matchesNeeded = parseInt(document.querySelector("#match_count").value) * 6
+    let matchesNeeded = parseInt(document.querySelector("#match_count").value) * positions.length
 
     let preferredSessionLength = parseInt(document.querySelector("#session_length").value) - 1
 
@@ -42,20 +47,20 @@ function go() {
     output.innerText += sessions + "\n\n"
 
     let sessionMatches = []
-    for (let i = 0; i < 6; i++) sessionMatches.push([0, 2 * (i+1), i])
+    for (let i = 0; i < positions.length; i++) sessionMatches.push([0, 2 * (i+1), positions[i]])
 
-    while (sessionMatches[sessionMatches.length-6][1] < matchesNeeded / 6) {
-        let previous = sessionMatches[sessionMatches.length - 6][1] + 1
+    while (sessionMatches[sessionMatches.length-positions.length][1] < matchesNeeded / positions.length) {
+        let previous = sessionMatches[sessionMatches.length - positions.length][1] + 1
 
-        let ending = Math.min(previous + preferredSessionLength, matchesNeeded / 6 - 1)
-        if (ending >= matchesNeeded / 6 - 3) ending = matchesNeeded / 6
-        sessionMatches.push([previous, ending, sessionMatches[sessionMatches.length-6][2]])
+        let ending = Math.min(previous + preferredSessionLength, matchesNeeded / positions.length - 1)
+        if (ending >= matchesNeeded / positions.length - 3) ending = matchesNeeded / positions.length
+        sessionMatches.push([previous, ending, sessionMatches[sessionMatches.length-positions.length][2]])
     }
 
     for (let match of sessionMatches) {
         match[0]++
         match[1]++
-        match[1] = Math.min(match[1], matchesNeeded / 6)
+        match[1] = Math.min(match[1], matchesNeeded / positions.length)
         output.innerText += "[" + match[0] + "," + match[1] + ", " + match[2] + "], "
     }
 
@@ -93,7 +98,7 @@ function go() {
     console.log(teamMemberOutputs)
 
     let missedMatchesTest = {}
-    for (let i = 1; i <= matchesNeeded/6; i++) {
+    for (let i = 1; i <= matchesNeeded/positions.length; i++) {
         missedMatchesTest[i] = 0
     }
 
@@ -127,7 +132,7 @@ function go() {
     output.innerText += "\n\n"
 
     for (let x in missedMatchesTest) {
-        if (missedMatchesTest[x] !== 6)
+        if (missedMatchesTest[x] !== positions.length)
             output.innerText += "Match " + x + " is being scouted " + missedMatchesTest[x] + " times.\n"
     }
 
