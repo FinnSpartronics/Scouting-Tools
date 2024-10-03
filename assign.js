@@ -118,13 +118,13 @@ function go() {
                 missedMatchesTest[i]++;
             }
 
-            if (lastMatch > session[1]) overlap = true;
+            if (lastMatch > session[0]) overlap = true;
             lastMatch = session[1]
         }
 
         output.innerText += " (" + matchesScouted + " matches)"
         if (overlap)
-            output.innerText += "     (OVERLAP)"
+            output.innerText += "     (⚠️ OVERLAP ⚠️)"
         output.innerText += "\n"
         
     }
@@ -133,7 +133,7 @@ function go() {
 
     for (let x in missedMatchesTest) {
         if (missedMatchesTest[x] !== positions.length)
-            output.innerText += "Match " + x + " is being scouted " + missedMatchesTest[x] + " times.\n"
+            output.innerText += "⚠️ Match " + x + " is being scouted " + missedMatchesTest[x] + " times. ⚠️\n"
     }
 
     
