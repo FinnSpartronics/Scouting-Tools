@@ -1,5 +1,5 @@
 document.querySelector("textarea#members").value = "a\nb\nc\nd\ne\nf\ng\nh\ni(1-20)"
-document.querySelector("textarea#positions").value = "1\n2\n3\n4\n5\n6"
+document.querySelector("textarea#positions").value = "Blue Top\nBlue Middle\nBlue Bottom\nRed Top\nRed Middle\nRed Bottom"
 document.querySelector("#match_count").value = "60"
 document.querySelector("#session_length").value = "10"
 
@@ -17,6 +17,11 @@ function go() {
     let positions = document.querySelector("textarea#positions").value.split("\n")
     for (let x of positions) x = x.trim()
     console.log(positions)
+
+    let nice = document.querySelector("#nice").checked
+    console.log(nice)
+
+    let issues = false; // Will become true if there is any overlap or missing matches
 
     let restrictions = {}
     for (let i in teamMembers) {
@@ -112,7 +117,13 @@ function go() {
         let overlap = false;
 
         for (let session of teamMemberSessions[x]) {
-            output.innerText += " " + JSON.stringify(session) + ","
+            if (nice) {
+                output.innerText += "\n"
+                output.innerHTML += "&nbsp;&nbsp;&nbsp;&nbsp;"
+                output.innerText += session[0] + "-" + session[1] + " " + session[2]
+            }
+            else output.innerText += " " + JSON.stringify(session) + ","
+
             matchesScouted += session[1] - session[0] + 1
             for (let i = session[0]; i <= session[1]; i++) {
                 missedMatchesTest[i]++;
@@ -122,11 +133,19 @@ function go() {
             lastMatch = session[1]
         }
 
-        output.innerText += " (" + matchesScouted + " matches)"
-        if (overlap)
-            output.innerText += "     (⚠️ OVERLAP ⚠️)"
+        if (nice) {
+            output.innerText += "\n"
+            output.innerHTML += "&nbsp;&nbsp;&nbsp;&nbsp;"
+            output.innerText += "Total of " + matchesScouted + " matches"
+            if (overlap)
+                output.innerText += "     (⚠️ OVERLAP ⚠️)"
+        } else {
+            output.innerText += " (" + matchesScouted + " matches)"
+            if (overlap)
+                output.innerText += "     (⚠️ OVERLAP ⚠️)"
+        }
         output.innerText += "\n"
-        
+
     }
 
     output.innerText += "\n\n"

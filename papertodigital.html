@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>Paper Scouting to Digital</title>
+</head>
+<body>
+  <button tabindex="-1" id="export">export</button>
+ 
+  <br/><br/>
+ 
+ 
+  <input placeholder="name" id="name" autocomplete="off"></input>
+  <input placeholder="team #" id="team" autocomplete="off"></input>
+  <input placeholder="match #" id="match" autocomplete="off"></input>
+  <br/><br/>
+ 
+  <input type="checkbox" id="automoved" autocomplete="off" checked> moved in auto?
+  <input placeholder="amp" id="autoamp" autocomplete="off"></input>
+  <input placeholder="speaker" id="autospeaker" autocomplete="off"></input>
+  <input placeholder="missed" id="automissed" autocomplete="off"></input>
+  <br/><br/>
+
+  <input placeholder="amp" id="amp" autocomplete="off"></input>
+  <input placeholder="speaker" id="speaker" autocomplete="off"></input>
+  <input placeholder="missed" id="missed" autocomplete="off"></input>
+
+  <br/><br/>
+
+  <input placeholder="bot rating" id="botrating" autocomplete="off"></input>
+  <input placeholder="drive rating" id="driverating" autocomplete="off"></input>
+
+<select id="climb">
+  <option value="2">climbed</option>
+  <option value="1">parked</option>
+  <option value="0" selected>none</option>
+</select>
+
+<br/><br/>
+
+<textarea id="comments" rows="8" cols="50" placeholder="notes"></textarea>
+
+<button id="next" style="opacity: 0;">
+
+  <script>
+    let json = []
+    
+    document.querySelector("#next").addEventListener("focus", () => {
+      document.querySelector("#name").select()
+      try {
+        document.querySelector("#name").highlight()
+      } catch {}
+
+      let data = {
+        "name": document.querySelector("#name").value,
+        "team": document.querySelector("#team").value,
+        "match": document.querySelector("#match").value,
+        "automoved": document.querySelector("#automoved").checked ? 1 : 0,
+        "autoamp": parseFloat(document.querySelector("#autoamp").value),
+        "autospeaker": parseFloat(document.querySelector("#autospeaker").value),
+        "automissed": parseFloat(document.querySelector("#automissed").value),
+        "amp": parseFloat(document.querySelector("#amp").value),
+        "speaker": parseFloat(document.querySelector("#speaker").value),
+        "missed": parseFloat(document.querySelector("#missed").value),
+        "botrating": parseFloat(document.querySelector("#botrating").value),
+        "driverating": parseFloat(document.querySelector("#driverating").value),
+        "climb": parseInt(document.querySelector("#climb").value),
+        "comments": document.querySelector("#comments").value,
+      }
+      json.push(data)
+      
+      console.clear()
+      console.log(data)
+
+      for (let el of document.querySelectorAll("input")) el.value = ""
+      document.querySelector("#name").value = data.name
+      document.querySelector("textarea").value = "";
+      document.querySelector("#automoved").checked = true;
+      document.querySelector("#climb").value = 0
+    })
+
+    document.querySelector("#export").addEventListener("click", () => {
+      prompt("copy this", JSON.stringify(json))
+    })
+  </script>
+ 
+</body>
+</html>
