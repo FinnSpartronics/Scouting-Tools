@@ -6,9 +6,10 @@ document.querySelector("#min_break").value = "3"
 
 let error = document.querySelector("#errors")
 let errorAttempts
+let errorAttemptsPer = 50
 
 function btn_go() {
-    errorAttempts = 50
+    errorAttempts = errorAttemptsPer
     error.innerText = ""
     console.clear()
     go()
@@ -196,5 +197,6 @@ function go() {
         }
     } else error.innerText = "Error attempt count exceeded. This likely means that the current combination of scouters, matches, positions, session length, and minimum break will not work."
 
+    console.log(errorAttemptsPer, errorAttempts)
 
 }
