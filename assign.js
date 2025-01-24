@@ -1,11 +1,19 @@
-document.querySelector("textarea#members").value = "a\nb\nc\nd\ne\nf\ng\nh[40-60-1,1-20-1](0-0)\ni(1-20)"
+document.querySelector("textarea#members").value = "a\nb\nc\nd\ne\nf\ng\nh[40-60-0,1-20-0](0-0)\ni(1-20)"
 document.querySelector("textarea#positions").value = "Red Front\nRed Middle\nRed Back\nBlue Front\nBlue Middle\nBlue Back"
 document.querySelector("#match_count").value = "70"
 document.querySelector("#session_length").value = "10"
+document.querySelector("#min_break").value = "3"
 
-let showDebug = false
+let error = document.querySelector("#errors")
+let errorAttempts
 
-go()
+function btn_go() {
+    errorAttempts = 50
+    error.innerText = ""
+    console.clear()
+    go()
+}
+btn_go()
 
 function go() {
     let output = document.querySelector("#output")
@@ -47,6 +55,7 @@ function go() {
 
     let matchesNeeded = parseInt(document.querySelector("#match_count").value)
     let preferredSessionLength = parseInt(document.querySelector("#session_length").value)
+    let minBreakLength = parseInt(document.querySelector("#min_break").value)
 
     output.innerText += teamMembers.length + " members, " + matchesNeeded + " matches\n\n"
 
@@ -127,7 +136,7 @@ function go() {
     let matchScoutedConfirmation = {}
     for (let position in positions) {
         let x = {}
-        for (let m = 1; m <= matchesNeeded; m++) {
+        for (let m = 0; m <= matchesNeeded; m++) {
             x[m] = 0
         }
         matchScoutedConfirmation[position] = x
@@ -153,6 +162,7 @@ function go() {
             matches += x[1] - x[0] + 1
 
             for (let i = x[0]; i <= x[1]; i++) {
+                matchScoutedConfirmation[x[2]][0]++
                 matchScoutedConfirmation[x[2]][i]++
             }
         }
@@ -161,11 +171,30 @@ function go() {
         output.appendChild(element)
     }
 
-    // TODO: Check to make sure that no team members have overlap
-    // TODO: Make the no overlap with the forced sessions
-
-    console.log(matchScoutedConfirmation)
-
+    if (errorAttempts > 0) {
+        for (let position in positions) {
+            if (matchScoutedConfirmation[position][0] !== matchesNeeded) {
+                errorAttempts--
+                go()
+                console.log("Matches scouted # mismatch.", matchesNeeded, matchScoutedConfirmation[position][0])
+                return
+            }
+        }
+        for (let m in teamMembers) {
+            let matches = []
+            for (let x of teamMemberSessions[m]) {
+                for (let i = x[0]; i <= x[1] + minBreakLength; i++) {
+                    if (matches.includes(i)) {
+                        errorAttempts--
+                        go()
+                        console.log("Scouter assigned same match twice or break too short", i, teamMemberSessions[m])
+                        return
+                    }
+                    matches.push(i)
+                }
+            }
+        }
+    } else error.innerText = "Error attempt count exceeded. This likely means that the current combination of scouters, matches, positions, session length, and minimum break will not work."
 
 
 }

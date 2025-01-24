@@ -9,3 +9,8 @@
     border-radius: .5rem;
     padding: .5rem;
 }
+
+#errors {
+    font-size: 2rem;
+    color: red;
+}
