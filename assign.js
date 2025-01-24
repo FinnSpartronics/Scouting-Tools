@@ -1,6 +1,6 @@
-document.querySelector("textarea#members").value = "a\nb\nc\nd\ne\nf\ng\nh[40-60-1,1-20-1](1-20)\ni(1-20)"
+document.querySelector("textarea#members").value = "a\nb\nc\nd\ne\nf\ng\nh[40-60-1,1-20-1](0-0)\ni(1-20)"
 document.querySelector("textarea#positions").value = "Red Front\nRed Middle\nRed Back\nBlue Front\nBlue Middle\nBlue Back"
-document.querySelector("#match_count").value = "60"
+document.querySelector("#match_count").value = "70"
 document.querySelector("#session_length").value = "10"
 
 let showDebug = false
@@ -44,7 +44,6 @@ function go() {
             forcedMatches[i] = split
         }
     }
-    console.log("forced", forcedMatches)
 
     let matchesNeeded = parseInt(document.querySelector("#match_count").value)
     let preferredSessionLength = parseInt(document.querySelector("#session_length").value)
@@ -75,31 +74,98 @@ function go() {
             }
         }
         takenSlots.sort((a, b) => {return a[0] - b[0]})
-        console.log(positions[position], takenSlots)
 
-        arr.push([1, 2 + Math.ceil(1.4 * Math.random() * (preferredSessionLength - 2))])
+        arr.push([1, 2 + Math.ceil(1.4 * Math.random() * (preferredSessionLength - 2)), position])
+
         for (let match = arr[arr.length - 1][1] + 1 + preferredSessionLength; match < matchesNeeded; match += preferredSessionLength) {
             if (takenSlots.length > 0) {
-                let curr = -1
-                let i = 0
-                while (takenSlots[i][0] <= match) {
-                    if (takenSlots[i][0] <= match) curr = takenSlots[i]
-                    i++
+                let inside = false
+                for (let x of takenSlots) {
+                    if (x[0] <= match && match <= x[1]) {
+                        inside = true
+                        if (arr.length > 1) {
+                            arr.push([arr[arr.length - 1][1] + 1, x[0] - 1, position])
+                            arr.push([x[0], x[1], position, "yes"])
+                        }
+                        else arr = [[x[0], x[1], position, "yes"]]
+                        match = x[1]
+                        break
+                    }
                 }
-                if (match < curr[1]) {
-                    arr.push(curr)
-                    match = curr[1]
-                    continue
-                }
+                if (inside) continue
             }
 
-            arr.push([arr[arr.length - 1][1] + 1, match])
+            arr.push([arr[arr.length - 1][1] + 1, match, position])
         }
-        arr.push([arr[arr.length - 1][1] + 1, matchesNeeded])
-
-        matchAssignments.push(arr)
+        arr.push([arr[arr.length - 1][1] + 1, matchesNeeded, position])
+        for (let x of arr) {
+            matchAssignments.push(x)
+        }
     }
-    console.log(matchAssignments)
+    matchAssignments.sort((a, b) => a[0] - b[0])
+
+    // Assign the matches to each person
+
+    // Return true if good, false if not
+    function checkRestrictions(start, end, member) {
+        if (Object.keys(restrictions).includes("" + member)) {
+            let list = restrictions["" + member]
+            for (let filter of list) {
+                if (start >= filter[0] && end <= filter[1]) return true;
+            }
+            return false;
+        } else return true;
+    }
+
+    for (let i = 0, member = 0; i < matchAssignments.length; i++) {
+        while (!checkRestrictions(matchAssignments[i][0], matchAssignments[i][1], member))
+            member = (member + 1) % teamMembers.length
+        if (matchAssignments[i].length === 3) teamMemberSessions[member].push(matchAssignments[i])
+        member = (member + 1) % (teamMembers.length)
+    }
+
+    let matchScoutedConfirmation = {}
+    for (let position in positions) {
+        let x = {}
+        for (let m = 1; m <= matchesNeeded; m++) {
+            x[m] = 0
+        }
+        matchScoutedConfirmation[position] = x
+    }
+
+    output.innerText = ""
+    for (let m in teamMembers) {
+        let element = document.createElement("div")
+        element.className = "memberMatches"
+        element.innerHTML = ""
+
+        teamMemberSessions[m].sort((a, b) => a[0] - b[0])
+
+        let name = teamMembers[m]
+        if (name.includes("(")) name = name.substring(0, name.indexOf("("))
+        if (name.includes("[")) name = name.substring(0, name.indexOf("["))
+
+        element.innerHTML += name + ":"
+
+        let matches = 0
+        for (let x of teamMemberSessions[m]) {
+            element.innerHTML += "<br/>ㅤㅤ" + x[0] + "-" + x[1] + " " + positions[x[2]]
+            matches += x[1] - x[0] + 1
+
+            for (let i = x[0]; i <= x[1]; i++) {
+                matchScoutedConfirmation[x[2]][i]++
+            }
+        }
+        element.innerHTML += "<br/>" + matches + " total matches"
+
+        output.appendChild(element)
+    }
+
+    // TODO: Check to make sure that no team members have overlap
+    // TODO: Make the no overlap with the forced sessions
+
+    console.log(matchScoutedConfirmation)
+
 
 
 }

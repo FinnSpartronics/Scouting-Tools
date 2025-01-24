@@ -1,0 +1,11 @@
+#output {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+}
+
+.memberMatches {
+    border: 1px solid black;
+    border-radius: .5rem;
+    padding: .5rem;
+}
