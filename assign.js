@@ -1,4 +1,4 @@
-document.querySelector("textarea#members").value = "a\nb\nc\nd\ne\nf\ng\nh[40-60-0,1-20-0](0-0)\ni(1-20)"
+document.querySelector("textarea#members").value = "a\nb\nc\nd\ne\nf\ng\nh\n\i\nj\nk\nl"
 document.querySelector("textarea#positions").value = "Red Front\nRed Middle\nRed Back\nBlue Front\nBlue Middle\nBlue Back"
 document.querySelector("#match_count").value = "70"
 document.querySelector("#session_length").value = "10"
@@ -8,6 +8,11 @@ let error = document.querySelector("#errors")
 let errorAttempts
 let errorAttemptsPer = 50
 
+let data = {}
+
+let outName = "Name"
+let outMatches = "Matches"
+
 function btn_go() {
     errorAttempts = errorAttemptsPer
     error.innerText = ""
@@ -15,6 +20,20 @@ function btn_go() {
     go()
 }
 btn_go()
+
+function download() {
+    let csv = ""
+    csv = `"${outName}","${outMatches}"\n`
+
+    for (let member of Object.keys(data)) {
+        csv += `"${member}","${data[member].trim()}"\n`
+    }
+
+    let el = document.createElement("a")
+    el.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(csv))
+    el.setAttribute("download", "assignments.csv")
+    el.click()
+}
 
 function go() {
     let output = document.querySelector("#output")
@@ -144,6 +163,11 @@ function go() {
     }
 
     output.innerText = ""
+
+    data = {
+
+    }
+
     for (let m in teamMembers) {
         let element = document.createElement("div")
         element.className = "memberMatches"
@@ -158,8 +182,10 @@ function go() {
         element.innerHTML += name + ":"
 
         let matches = 0
+        let outputMatches = ""
         for (let x of teamMemberSessions[m]) {
             element.innerHTML += "<br/>ㅤㅤ" + x[0] + "-" + x[1] + " " + positions[x[2]]
+            outputMatches += x[0] + "-" + x[1] + " " + positions[x[2]] + "\n"
             matches += x[1] - x[0] + 1
 
             for (let i = x[0]; i <= x[1]; i++) {
@@ -170,6 +196,8 @@ function go() {
         element.innerHTML += "<br/>" + matches + " total matches"
 
         output.appendChild(element)
+
+        data[name] = outputMatches
     }
 
     if (errorAttempts > 0) {
@@ -195,8 +223,7 @@ function go() {
                 }
             }
         }
-    } else error.innerText = "Error attempt count exceeded. This likely means that the current combination of scouters, matches, positions, session length, and minimum break will not work."
+    } else error.innerText = "This will not work :("
 
     console.log(errorAttemptsPer, errorAttempts)
-
 }
