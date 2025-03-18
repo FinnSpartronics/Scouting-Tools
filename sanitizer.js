@@ -1,5 +1,64 @@
 let data
 
+const presetsKey = "4915_Scouting_Sanitizer_Presets"
+
+function setPresetsEl() {
+    let presets = document.querySelector(".presets")
+    presets.innerHTML = `<h3>Presets</h3> <button id="saveCurrent">Save Current as Preset</button>`
+
+    document.querySelector("#saveCurrent").addEventListener("click", () => {
+        let name = prompt("What should this preset be called?")
+        if (name === null) return
+        name = name.toUpperCase()
+        if (localStorage.getItem(presetsKey) !== null) {
+            let savedPresets = JSON.parse(localStorage.getItem(presetsKey))
+            savedPresets[name] = {
+                "deletes": document.querySelector("#deletes").value,
+                "clears": document.querySelector("#clears").value
+            }
+            console.log(savedPresets)
+            localStorage.setItem(presetsKey, JSON.stringify(savedPresets))
+        } else {
+            let newPresets = {}
+            newPresets[name] = {
+                "deletes": document.querySelector("#deletes").value,
+                "clears": document.querySelector("#clears").value
+            }
+            console.log(newPresets)
+            localStorage.setItem(presetsKey, JSON.stringify(newPresets))
+        }
+
+        setPresetsEl()
+    })
+
+    console.log(localStorage.getItem(presetsKey))
+    if (localStorage.getItem(presetsKey) !== null) {
+        let savedPresets = JSON.parse(localStorage.getItem(presetsKey))
+        for (let x in savedPresets) {
+            let presetEl = document.createElement("div")
+            presetEl.innerHTML = `
+                <span>${x}</span>
+                <button id="load-${x}">Load</button>
+                <button id="delete-${x}">Delete</button>
+            `
+            presets.appendChild(presetEl)
+
+            document.querySelector(`#load-${x}`).addEventListener("click", () => {
+                document.querySelector("#deletes").value = savedPresets[x].deletes
+                document.querySelector("#clears").value = savedPresets[x].clears
+            })
+
+            document.querySelector(`#delete-${x}`).addEventListener("click", () => {
+                if (!confirm("you sure you want to delete?")) return
+                delete savedPresets[x]
+                localStorage.setItem(presetsKey, JSON.stringify(savedPresets))
+                setPresetsEl()
+            })
+        }
+    }
+}
+setPresetsEl()
+
 function setFieldsDiv() {
     let fields = document.querySelector("#fields")
     fields.innerText = ""
@@ -11,6 +70,9 @@ function sanitize() {
     for (let x of data) {
         for (let fields of document.querySelector("#deletes").value.split("\n")) {
             delete x[fields]
+        }
+        for (let fields of document.querySelector("#clears").value.split("\n")) {
+            x[fields] = ""
         }
     }
     setFieldsDiv()

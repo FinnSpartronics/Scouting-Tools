@@ -3,16 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <title>Data Sanitizer</title>
+    <style>
+        .presets {
+            display:flex;
+            flex-direction: column;
+            border-top: 1px solid black;
+            border-bottom: 1px solid black;
+        }
+    </style>
 </head>
 <body>
     <div id="fields">Fields</div><br/><br/>
 
     Delete Fields<br/>
-    <textarea id="deletes" placeholder="Deletes" rows="10" cols="100"></textarea>
+    <textarea id="deletes" placeholder="Deletes" rows="10" cols="50"></textarea>
     <br/><br/>
     Clear Fields<br/>
-    <textarea id="clears" placeholder="Clears" rows="10" cols="100"></textarea>
+    <textarea id="clears" placeholder="Clears" rows="10" cols="50"></textarea>
     <br/><br/>
+
+    <div class="presets">
+        <h3>Presets</h3>
+        <div>
+            <span>Name</span>
+            <button>Load</button>
+            <button>Delete</button>
+        </div>
+        <div>
+            <span>Name</span>
+            <button>Load</button>
+            <button>Delete</button>
+        </div>
+        <div>
+            <span>Name</span>
+            <button>Load</button>
+            <button>Delete</button>
+        </div>
+    </div> <br/>
 
     <button id="ucsv">Upload CSV</button>
     <button id="ujson">Upload JSON</button> <br/><br/>
