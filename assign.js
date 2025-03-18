@@ -1,4 +1,4 @@
-document.querySelector("textarea#members").value = "a\nb\nc\nd\ne\nf\ng\nh\n\i\nj\nk\nl"
+document.querySelector("textarea#members").value = "a\nb\nc\nd\ne\nf\ng\nh\ni\nj\nk\nl"
 document.querySelector("textarea#positions").value = "Red 1\nRed 2\nRed 3\nBlue 1\nBlue 2\nBlue 3"
 document.querySelector("#match_count").value = "70"
 document.querySelector("#session_length").value = "10"
@@ -9,10 +9,11 @@ let errorAttempts
 let errorAttemptsPer = 50
 
 let data = {}
-let dataTable = {}
 
 let outName = "Name"
 let outMatches = "Matches"
+
+let editing = false
 
 function btn_go() {
     errorAttempts = errorAttemptsPer
@@ -26,8 +27,8 @@ function download() {
     let csv = ""
     csv = `"${outName}","${outMatches}"\n`
 
-    for (let member of Object.keys(data)) {
-        csv += `"${member}","${data[member].trim()}"\n`
+    for (let member of Object.keys(data["formatted"])) {
+        csv += `"${member}","${data["formatted"][member].trim()}"\n`
     }
 
     let el = document.createElement("a")
@@ -38,7 +39,7 @@ function download() {
 
 function downloadTable() {
     let el = document.createElement("a")
-    el.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(jsonToCSV(dataTable)))
+    el.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(jsonToCSV(data["table"])))
     el.setAttribute("download", "assignment_table.csv")
     el.click()
 }
@@ -82,7 +83,14 @@ function go() {
     let positions = document.querySelector("textarea#positions").value.split("\n")
     for (let x of positions) x = x.trim()
 
-    // Restrictions
+    let matchesNeeded = parseInt(document.querySelector("#match_count").value)
+    let preferredSessionLength = parseInt(document.querySelector("#session_length").value)
+    let minBreakLength = parseInt(document.querySelector("#min_break").value)
+    output.innerText += teamMembers.length + " members, " + matchesNeeded + " matches\n\n"
+
+    let teamMemberSessions = {}
+
+    //#region Restrictions
     let restrictions = {}
     for (let i in teamMembers) {
         if (teamMembers[i].includes("(")) {
@@ -96,8 +104,9 @@ function go() {
             restrictions[i] = split
         }
     }
+    //#endregion
 
-    // Forec Matches
+    //#region Forced Matches
     let forcedMatches = {}
     for (let i in teamMembers) {
         if (teamMembers[i].includes("[")) {
@@ -112,14 +121,7 @@ function go() {
         }
     }
 
-    let matchesNeeded = parseInt(document.querySelector("#match_count").value)
-    let preferredSessionLength = parseInt(document.querySelector("#session_length").value)
-    let minBreakLength = parseInt(document.querySelector("#min_break").value)
-
-    output.innerText += teamMembers.length + " members, " + matchesNeeded + " matches\n\n"
-
     let teamMember = 0;
-    let teamMemberSessions = {}
 
     for (teamMember in teamMembers) {
         teamMemberSessions[teamMember] = []
@@ -127,7 +129,9 @@ function go() {
             for (let forced of Object.values(forcedMatches[teamMember])) teamMemberSessions[teamMember].push(forced)
         }
     }
+    //#endregion Forced Matches
 
+    //#region Create other sessions
     let matchAssignments = []
     for (let position = 0; position < positions.length; position++) {
         let arr = []
@@ -170,8 +174,9 @@ function go() {
         }
     }
     matchAssignments.sort((a, b) => a[0] - b[0])
+    //#endregion Create other sessions
 
-    // Assign the matches to each person
+    //#region Assign the sessions to each person
 
     // Return true if good, false if not
     function checkRestrictions(start, end, member) {
@@ -191,11 +196,18 @@ function go() {
         member = (member + 1) % (teamMembers.length)
     }
 
+    //#endregion Assign the sessions to each person
+
+    //#region Prepare output and validity check
     let matchScoutedConfirmation = {}
 
-    let tableOutput = []
+    data = {
+        "table": [],
+        "formatted": {},
+    }
+
     for (let m = 1; m <= matchesNeeded; m++) {
-        tableOutput.push({"#": m})
+        data["table"].push({"#": m})
     }
 
     for (let position in positions) {
@@ -207,11 +219,9 @@ function go() {
     }
 
     output.innerText = ""
+    //#endregion Prepare output and validity check
 
-    data = {
-
-    }
-
+    //#region Validity check and output
     for (let m in teamMembers) {
         let element = document.createElement("div")
         element.className = "memberMatches"
@@ -235,17 +245,15 @@ function go() {
             for (let i = x[0]; i <= x[1]; i++) {
                 matchScoutedConfirmation[x[2]][0]++
                 matchScoutedConfirmation[x[2]][i]++
-                tableOutput[i - 1][positions[x[2]]] = teamMembers[m]
+                data["table"][i - 1][positions[x[2]]] = teamMembers[m]
             }
         }
         element.innerHTML += "<br/>" + matches + " total matches"
 
         output.appendChild(element)
 
-        data[name] = outputMatches
+        data["formatted"][name] = outputMatches
     }
-
-    dataTable = tableOutput
 
     if (errorAttempts > 0) {
         for (let position in positions) {
@@ -271,4 +279,9 @@ function go() {
             }
         }
     } else error.innerText = "This will not work :("
+    //#endregion Validity check and output
+}
+
+function editMode() {
+    editing = !editing
 }
