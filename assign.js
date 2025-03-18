@@ -1,5 +1,5 @@
 document.querySelector("textarea#members").value = "a\nb\nc\nd\ne\nf\ng\nh\n\i\nj\nk\nl"
-document.querySelector("textarea#positions").value = "Red Front\nRed Middle\nRed Back\nBlue Front\nBlue Middle\nBlue Back"
+document.querySelector("textarea#positions").value = "Red 1\nRed 2\nRed 3\nBlue 1\nBlue 2\nBlue 3"
 document.querySelector("#match_count").value = "70"
 document.querySelector("#session_length").value = "10"
 document.querySelector("#min_break").value = "3"
@@ -9,6 +9,7 @@ let errorAttempts
 let errorAttemptsPer = 50
 
 let data = {}
+let dataTable = {}
 
 let outName = "Name"
 let outMatches = "Matches"
@@ -35,6 +36,42 @@ function download() {
     el.click()
 }
 
+function downloadTable() {
+    let el = document.createElement("a")
+    el.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(jsonToCSV(dataTable)))
+    el.setAttribute("download", "assignment_table.csv")
+    el.click()
+}
+
+function jsonToCSV(json) {
+    function item(x) {
+        if (typeof x === "string") {
+            return '"' + x.replaceAll('"', '\\"') + '"'
+        } else return x
+    }
+
+    let csv = []
+    let currentLine = ""
+
+    for (let key of Object.keys(json[0])) {
+        currentLine += item(key)+","
+    }
+    currentLine = currentLine.substring(0, currentLine.length - 1)
+    csv.push(currentLine)
+    currentLine = ""
+
+    for (let i = 0; i < json.length; i++) {
+        for (let val of Object.values(json[i])) {
+            currentLine += item(val)+","
+        }
+        currentLine = currentLine.substring(0, currentLine.length - 1)
+        csv.push(currentLine)
+        currentLine = ""
+    }
+
+    return csv.join("\n")
+}
+
 function go() {
     let output = document.querySelector("#output")
     output.innerText = ""
@@ -45,6 +82,7 @@ function go() {
     let positions = document.querySelector("textarea#positions").value.split("\n")
     for (let x of positions) x = x.trim()
 
+    // Restrictions
     let restrictions = {}
     for (let i in teamMembers) {
         if (teamMembers[i].includes("(")) {
@@ -59,6 +97,7 @@ function go() {
         }
     }
 
+    // Forec Matches
     let forcedMatches = {}
     for (let i in teamMembers) {
         if (teamMembers[i].includes("[")) {
@@ -80,7 +119,6 @@ function go() {
     output.innerText += teamMembers.length + " members, " + matchesNeeded + " matches\n\n"
 
     let teamMember = 0;
-    let teamMemberOutputs = {}
     let teamMemberSessions = {}
 
     for (teamMember in teamMembers) {
@@ -154,6 +192,12 @@ function go() {
     }
 
     let matchScoutedConfirmation = {}
+
+    let tableOutput = []
+    for (let m = 1; m <= matchesNeeded; m++) {
+        tableOutput.push({"#": m})
+    }
+
     for (let position in positions) {
         let x = {}
         for (let m = 0; m <= matchesNeeded; m++) {
@@ -191,6 +235,7 @@ function go() {
             for (let i = x[0]; i <= x[1]; i++) {
                 matchScoutedConfirmation[x[2]][0]++
                 matchScoutedConfirmation[x[2]][i]++
+                tableOutput[i - 1][positions[x[2]]] = teamMembers[m]
             }
         }
         element.innerHTML += "<br/>" + matches + " total matches"
@@ -199,6 +244,8 @@ function go() {
 
         data[name] = outputMatches
     }
+
+    dataTable = tableOutput
 
     if (errorAttempts > 0) {
         for (let position in positions) {
@@ -224,6 +271,4 @@ function go() {
             }
         }
     } else error.innerText = "This will not work :("
-
-    console.log(errorAttemptsPer, errorAttempts)
 }

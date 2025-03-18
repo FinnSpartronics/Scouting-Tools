@@ -1,7 +1,5 @@
 let loading = 0
 
-let apikey = "fyGeKqZa0CE8i5zKl9Io8mNrXqfbbQNPa9M23yIcrwnG3oW1Kw0LoSplFNFR56zg"
-
 function jsonToCSV(json) {
     function item(x) {
         if (typeof x === "string") {
