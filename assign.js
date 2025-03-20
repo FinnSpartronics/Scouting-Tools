@@ -198,17 +198,21 @@ function go() {
     //#endregion Assign the sessions to each person
 
     //#region Prepare output and validity check
-    let matchScoutedConfirmation = {}
 
     data = {
         "table": [],
         "formatted": {},
+        "settings": {
+            matchesNeeded,
+            minBreakLength
+        }
     }
 
     for (let m = 1; m <= matchesNeeded; m++) {
         data["table"].push({"#": m})
     }
 
+    let matchScoutedConfirmation = {}
     for (let position in positions) {
         let x = {}
         for (let m = 0; m <= matchesNeeded; m++) {
@@ -251,10 +255,11 @@ function go() {
 
     if (errorAttempts > 0) {
         for (let position in positions) {
+            console.log(matchScoutedConfirmation)
             if (matchScoutedConfirmation[position][0] !== matchesNeeded) {
                 errorAttempts--
                 go()
-                //console.log("Matches scouted # mismatch.", matchesNeeded, matchScoutedConfirmation[position][0])
+                console.log("Matches scouted # mismatch.", matchesNeeded, matchScoutedConfirmation[position][0])
                 return
             }
         }
@@ -277,7 +282,6 @@ function go() {
                 if (session[1] - session[0] < 3) {
                     errorAttempts--
                     go()
-                    //console.log("Session too short")
                     return
                 }
             }
@@ -294,6 +298,11 @@ function editMode() {
 }
 
 function displayEdit() {
+    let issues = checkValidity()
+    if (issues === 0) issues = ""
+    console.log(issues)
+    document.querySelector("#errors").innerHTML = issues
+
     let output = document.querySelector("#output")
 
     output.innerText = ""
@@ -426,4 +435,59 @@ function display() {
 
         output.appendChild(element)
     }
+}
+
+function checkValidity() {
+    let matchScoutedConfirmation = {}
+    for (let position in data.positions) {
+        let x = {}
+        for (let m = 0; m <= data.settings.matchesNeeded; m++) {
+            x[m] = 0
+        }
+        matchScoutedConfirmation[position] = x
+    }
+
+    for (let m in data.members) {
+        data.sessions[m].sort((a, b) => a[0] - b[0])
+
+        let matches = 0
+        let outputMatches = ""
+        for (let x of data.sessions[m]) {
+            outputMatches += x[0] + "-" + x[1] + " " + data.positions[x[2]] + "\n"
+            matches += x[1] - x[0] + 1
+
+            for (let i = x[0]; i <= x[1]; i++) {
+                matchScoutedConfirmation[x[2]][0]++
+                matchScoutedConfirmation[x[2]][i]++
+                data["table"][i - 1][data.positions[x[2]]] = data.members[m]
+            }
+        }
+
+        data["formatted"][data.members[m]] = outputMatches
+    }
+
+    /*for (let position in data.positions) {
+        if (matchScoutedConfirmation[position][0] !== data.settings.matchesNeeded) {
+            return 1
+        }
+    }*/
+    for (let m in data.members) {
+        let matches = []
+        for (let x of data.sessions[m]) {
+            for (let i = x[0]; i <= x[1] + data.settings.minBreakLength; i++) {
+                if (matches.includes(i)) {
+                    return 2
+                }
+                matches.push(i)
+            }
+        }
+    }
+    for (let member in data.sessions) {
+        for (let session of data.sessions[member]) {
+            if (session[1] - session[0] < 3) {
+                return 3
+            }
+        }
+    }
+    return 0
 }
