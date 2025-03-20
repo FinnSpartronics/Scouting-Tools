@@ -1,4 +1,4 @@
-document.querySelector("textarea#members").value = "a\nb\nc\nd\ne\nf\ng\nh\ni\nj\nk\nl"
+document.querySelector("textarea#members").value = "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12"
 document.querySelector("textarea#positions").value = "Red 1\nRed 2\nRed 3\nBlue 1\nBlue 2\nBlue 3"
 document.querySelector("#match_count").value = "70"
 document.querySelector("#session_length").value = "10"
@@ -6,7 +6,7 @@ document.querySelector("#min_break").value = "3"
 
 let error = document.querySelector("#errors")
 let errorAttempts
-let errorAttemptsPer = 50
+let errorAttemptsPer = 100
 
 let data = {}
 
@@ -18,7 +18,6 @@ let editing = false
 function btn_go() {
     errorAttempts = errorAttemptsPer
     error.innerText = ""
-    console.clear()
     go()
 }
 btn_go()
@@ -221,24 +220,17 @@ function go() {
     output.innerText = ""
     //#endregion Prepare output and validity check
 
-    //#region Validity check and output
+    //#region Validity check & final processing for data variable
     for (let m in teamMembers) {
-        let element = document.createElement("div")
-        element.className = "memberMatches"
-        element.innerHTML = ""
-
         teamMemberSessions[m].sort((a, b) => a[0] - b[0])
 
-        let name = teamMembers[m]
-        if (name.includes("(")) name = name.substring(0, name.indexOf("("))
-        if (name.includes("[")) name = name.substring(0, name.indexOf("["))
-
-        element.innerHTML += name + ":"
+        if (teamMembers[m].includes("(")) teamMembers[m] = teamMembers[m].substring(0, teamMembers[m].indexOf("("))
+        if (teamMembers[m].includes("[")) teamMembers[m] = teamMembers[m].substring(0, teamMembers[m].indexOf("["))
+        name = teamMembers[m]
 
         let matches = 0
         let outputMatches = ""
         for (let x of teamMemberSessions[m]) {
-            element.innerHTML += "<br/>ㅤㅤ" + x[0] + "-" + x[1] + " " + positions[x[2]]
             outputMatches += x[0] + "-" + x[1] + " " + positions[x[2]] + "\n"
             matches += x[1] - x[0] + 1
 
@@ -248,19 +240,21 @@ function go() {
                 data["table"][i - 1][positions[x[2]]] = teamMembers[m]
             }
         }
-        element.innerHTML += "<br/>" + matches + " total matches"
-
-        output.appendChild(element)
 
         data["formatted"][name] = outputMatches
     }
+
+    data["sessions"] = teamMemberSessions
+    data["members"] = teamMembers
+    data["positions"] = positions
+    display()
 
     if (errorAttempts > 0) {
         for (let position in positions) {
             if (matchScoutedConfirmation[position][0] !== matchesNeeded) {
                 errorAttempts--
                 go()
-                console.log("Matches scouted # mismatch.", matchesNeeded, matchScoutedConfirmation[position][0])
+                //console.log("Matches scouted # mismatch.", matchesNeeded, matchScoutedConfirmation[position][0])
                 return
             }
         }
@@ -271,10 +265,20 @@ function go() {
                     if (matches.includes(i)) {
                         errorAttempts--
                         go()
-                        console.log("Scouter assigned same match twice or break too short", i, teamMemberSessions[m])
+                        //console.log("Scouter assigned same match twice or break too short", i, teamMemberSessions[m])
                         return
                     }
                     matches.push(i)
+                }
+            }
+        }
+        for (let member in teamMemberSessions) {
+            for (let session of teamMemberSessions[member]) {
+                if (session[1] - session[0] < 3) {
+                    errorAttempts--
+                    go()
+                    //console.log("Session too short")
+                    return
                 }
             }
         }
@@ -284,4 +288,112 @@ function go() {
 
 function editMode() {
     editing = !editing
+
+    if (editing) displayEdit()
+    else display()
+}
+
+function displayEdit() {
+    let output = document.querySelector("#output")
+
+    output.innerText = ""
+
+    let inputid = 0
+    for (let m in data["members"]) {
+        let element = document.createElement("div")
+        element.className = "memberMatches edit"
+        output.appendChild(element)
+
+        element.innerHTML += data["members"][m] + ":"
+
+        let matches = 0
+        for (let x of data["sessions"][m]) {
+            let session = document.createElement("div")
+            element.appendChild(session)
+
+            let start = document.createElement("input")
+            start.type = "number"
+            start.min = "0"
+            start.setAttribute("value", x[0])
+            start.className = "edit"
+            start.addEventListener("change", change)
+            session.appendChild(start)
+            inputid++
+
+            let end = document.createElement("input")
+            end.type = "number"
+            end.min = "0"
+            end.setAttribute("value", x[1])
+            end.className = "edit"
+            end.addEventListener("change", change)
+            session.appendChild(end)
+            inputid++
+
+            let position = document.createElement("span")
+            position.innerText = data.positions[x[2]]
+            session.appendChild(position)
+
+            function change() {
+                let previousSession
+                let nextSession
+                for (let person in data.sessions) {
+                    for (let session in data.sessions[person]) {
+                        if (x[2] != data.sessions[person][session][2]) continue
+                        if (parseInt(x[0]) - 1 == data.sessions[person][session][1]) previousSession = {
+                            "person": person,
+                            "session": session
+                        }
+                        if (parseInt(x[1]) + 1 == data.sessions[person][session][0]) nextSession = {
+                            "person": person,
+                            "session": session
+                        }
+                    }
+                }
+
+                let modification = "bottom"
+                if (x[1] !== parseInt(end.value)) modification = "top"
+
+                if (modification === "bottom") {
+                    data.sessions[parseInt(previousSession["person"])][parseInt(previousSession["session"])][1] += parseInt(start.value) - x[0]
+                    x[0] += parseInt(start.value) - x[0]
+                    displayEdit()
+                } else {
+                    data.sessions[parseInt(nextSession["person"])][parseInt(nextSession["session"])][0] += parseInt(end.value) - x[1]
+                    x[1] += parseInt(end.value) - x[1]
+                    displayEdit()
+                }
+            }
+
+            matches += x[1] - x[0] + 1
+        }
+
+        let total = document.createElement("div")
+        total.innerHTML += "<br/>" + matches + " total matches"
+        element.appendChild(total)
+    }
+}
+
+function display() {
+    let output = document.querySelector("#output")
+
+    output.innerText = ""
+
+    for (let m in data["members"]) {
+        let element = document.createElement("div")
+        element.className = "memberMatches"
+        element.innerHTML = ""
+
+        element.innerHTML += data["members"][m] + ":"
+
+        let matches = 0
+        let outputMatches = ""
+        for (let x of data["sessions"][m]) {
+            element.innerHTML += "<br/>ㅤㅤ" + x[0] + "-" + x[1] + " " + data["positions"][x[2]]
+            outputMatches += x[0] + "-" + x[1] + " " + data["positions"][x[2]] + "\n"
+            matches += x[1] - x[0] + 1
+        }
+        element.innerHTML += "<br/>" + matches + " total matches"
+
+        output.appendChild(element)
+    }
 }

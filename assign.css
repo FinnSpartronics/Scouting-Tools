@@ -14,3 +14,7 @@
     font-size: 2rem;
     color: red;
 }
+
+input.edit {
+    width: 50px;
+}
