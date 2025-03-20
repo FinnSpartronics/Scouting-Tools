@@ -333,6 +333,32 @@ function displayEdit() {
             position.innerText = data.positions[x[2]]
             session.appendChild(position)
 
+            let split = document.createElement("button")
+            split.innerText = "Split"
+            split.addEventListener("click", () => {
+                let i = data["sessions"][m].indexOf(x)
+                let middle = data["sessions"][m][i][0] + Math.floor((data["sessions"][m][i][1] - data["sessions"][m][i][0])/2)
+                data["sessions"][m].push([middle, data["sessions"][m][i][1], data["sessions"][m][i][2]])
+                data["sessions"][m][i][1] = middle - 1
+                data["sessions"][m].sort((a,b) => a[0] - b[0])
+                displayEdit()
+            })
+            session.appendChild(split)
+
+            let trade = document.createElement("button")
+            trade.innerText = "Move"
+            trade.addEventListener("click", () => {
+                let moveTo = prompt("Index of whom to move to?")
+                if (moveTo === null) return
+                console.log(moveTo)
+                let i = data["sessions"][m].indexOf(x)
+                let result = data["sessions"][m].splice(i, 1)[0]
+                data["sessions"][moveTo].push(result)
+                data["sessions"][moveTo].sort((a,b) => a[0] - b[0])
+                displayEdit()
+            })
+            session.appendChild(trade)
+
             function change() {
                 let previousSession
                 let nextSession
