@@ -38,17 +38,17 @@ function setPresetsEl() {
             let presetEl = document.createElement("div")
             presetEl.innerHTML = `
                 <span>${x}</span>
-                <button id="load-${x}">Load</button>
-                <button id="delete-${x}">Delete</button>
+                <button id="load-${x.replaceAll(" ", "_")}">Load</button>
+                <button id="delete-${x.replaceAll(" ", "_")}">Delete</button>
             `
             presets.appendChild(presetEl)
 
-            document.querySelector(`#load-${x}`).addEventListener("click", () => {
+            document.querySelector(`#load-${x.replaceAll(" ", "_")}`).addEventListener("click", () => {
                 document.querySelector("#deletes").value = savedPresets[x].deletes
                 document.querySelector("#clears").value = savedPresets[x].clears
             })
 
-            document.querySelector(`#delete-${x}`).addEventListener("click", () => {
+            document.querySelector(`#delete-${x.replaceAll(" ", "_")}`).addEventListener("click", () => {
                 if (!confirm("you sure you want to delete?")) return
                 delete savedPresets[x]
                 localStorage.setItem(presetsKey, JSON.stringify(savedPresets))
