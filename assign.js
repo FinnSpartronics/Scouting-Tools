@@ -355,10 +355,14 @@ function displayEdit() {
 
                 if (modification === "bottom") {
                     data.sessions[parseInt(previousSession["person"])][parseInt(previousSession["session"])][1] += parseInt(start.value) - x[0]
+                    if (data.sessions[parseInt(previousSession["person"])][parseInt(previousSession["session"])][0] > data.sessions[parseInt(previousSession["person"])][parseInt(previousSession["session"])][1])
+                        data.sessions[parseInt(previousSession["person"])].splice(parseInt(previousSession["session"]),1)
                     x[0] += parseInt(start.value) - x[0]
                     displayEdit()
                 } else {
                     data.sessions[parseInt(nextSession["person"])][parseInt(nextSession["session"])][0] += parseInt(end.value) - x[1]
+                    if (data.sessions[parseInt(nextSession["person"])][parseInt(nextSession["session"])][0] > data.sessions[parseInt(nextSession["person"])][parseInt(nextSession["session"])][1])
+                        data.sessions[parseInt(nextSession["person"])].splice(parseInt(nextSession["session"]),1)
                     x[1] += parseInt(end.value) - x[1]
                     displayEdit()
                 }
