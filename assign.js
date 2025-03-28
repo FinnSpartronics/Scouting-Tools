@@ -61,8 +61,8 @@ function jsonToCSV(json) {
     currentLine = ""
 
     for (let i = 0; i < json.length; i++) {
-        for (let val of Object.values(json[i])) {
-            currentLine += item(val)+","
+        for (let key of Object.keys(json[i])) {
+            currentLine += item(json[i][key])+","
         }
         currentLine = currentLine.substring(0, currentLine.length - 1)
         csv.push(currentLine)

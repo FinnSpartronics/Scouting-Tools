@@ -61,9 +61,9 @@ function go() {
             let red1 = x["alliances"]["red"]["team_keys"][0].substring(3)
             let red2 = x["alliances"]["red"]["team_keys"][1].substring(3)
             let red3 = x["alliances"]["red"]["team_keys"][2].substring(3)
-            let blue1 = x["alliances"]["red"]["team_keys"][0].substring(3)
-            let blue2 = x["alliances"]["red"]["team_keys"][1].substring(3)
-            let blue3 = x["alliances"]["red"]["team_keys"][2].substring(3)
+            let blue1 = x["alliances"]["blue"]["team_keys"][0].substring(3)
+            let blue2 = x["alliances"]["blue"]["team_keys"][1].substring(3)
+            let blue3 = x["alliances"]["blue"]["team_keys"][2].substring(3)
             matches.push({
                 "match": parseInt(x["match_number"]),
                 "Red 1": red1,
@@ -80,4 +80,22 @@ function go() {
     })
 }
 
-document.querySelector("button").addEventListener("click", go)
+function downloadTeams() {
+    let event = document.querySelector("#event").value
+    load("event/"+event+"/teams", (data) => {
+        let teams = []
+        for (let x of data) {
+            teams.push({
+                "Team Number": x["team_number"],
+                "Pit scouted": false,
+                "Name": x["nickname"],
+                "image": "",
+            })
+        }
+        teams = teams.sort((a, b) => a["Team Number"] - b["Team Number"])
+        download(`teams${event}.csv`, jsonToCSV(teams))
+    })
+}
+
+document.querySelector("button#main").addEventListener("click", go)
+document.querySelector("button#teams").addEventListener("click", downloadTeams)
