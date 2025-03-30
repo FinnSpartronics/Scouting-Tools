@@ -103,6 +103,16 @@ function go() {
             restrictions[i] = split
         }
     }
+
+    let positionRestrictions = {}
+    for (let i in teamMembers) {
+        if (teamMembers[i].includes("<")) {
+            let unfiltered = teamMembers[i].substring(teamMembers[i].indexOf("<"), teamMembers[i].indexOf(">")).trim().replace("<", "").replace(">", "")
+            let split = unfiltered.split(",")
+            positionRestrictions[i] = split
+        }
+    }
+    console.log(positionRestrictions)
     //#endregion
 
     //#region Forced Matches
@@ -187,9 +197,19 @@ function go() {
             return false;
         } else return true;
     }
+    // Return true if good, false if not
+    function checkPositionRestrictions(pos, member) {
+        if (Object.keys(positionRestrictions).includes("" + member)) {
+            let list = positionRestrictions["" + member]
+            for (let filter of list) {
+                if (pos == filter) return true;
+            }
+            return false;
+        } else return true;
+    }
 
     for (let i = 0, member = 0; i < matchAssignments.length; i++) {
-        while (!checkRestrictions(matchAssignments[i][0], matchAssignments[i][1], member))
+        while (!(checkRestrictions(matchAssignments[i][0], matchAssignments[i][1], member) && checkPositionRestrictions(matchAssignments[i][2], member)))
             member = (member + 1) % teamMembers.length
         if (matchAssignments[i].length === 3) teamMemberSessions[member].push(matchAssignments[i])
         member = (member + 1) % (teamMembers.length)
@@ -230,6 +250,7 @@ function go() {
 
         if (teamMembers[m].includes("(")) teamMembers[m] = teamMembers[m].substring(0, teamMembers[m].indexOf("("))
         if (teamMembers[m].includes("[")) teamMembers[m] = teamMembers[m].substring(0, teamMembers[m].indexOf("["))
+        if (teamMembers[m].includes("<")) teamMembers[m] = teamMembers[m].substring(0, teamMembers[m].indexOf("<"))
         name = teamMembers[m]
 
         let matches = 0
@@ -255,7 +276,6 @@ function go() {
 
     if (errorAttempts > 0) {
         for (let position in positions) {
-            console.log(matchScoutedConfirmation)
             if (matchScoutedConfirmation[position][0] !== matchesNeeded) {
                 errorAttempts--
                 go()
