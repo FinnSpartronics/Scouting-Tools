@@ -90,6 +90,8 @@ function go() {
     let teamMemberSessions = {}
 
     //#region Restrictions
+    let restrictedMembers = []
+
     let restrictions = {}
     for (let i in teamMembers) {
         if (teamMembers[i].includes("(")) {
@@ -101,6 +103,7 @@ function go() {
                 split[filter][1] = parseInt(split[filter][1].trim())
             }
             restrictions[i] = split
+            if (!restrictedMembers.includes(i)) restrictedMembers.push(i)
         }
     }
 
@@ -110,9 +113,9 @@ function go() {
             let unfiltered = teamMembers[i].substring(teamMembers[i].indexOf("<"), teamMembers[i].indexOf(">")).trim().replace("<", "").replace(">", "")
             let split = unfiltered.split(",")
             positionRestrictions[i] = split
+            if (!restrictedMembers.includes(i)) restrictedMembers.push(i)
         }
     }
-    console.log(positionRestrictions)
     //#endregion
 
     //#region Forced Matches
@@ -127,6 +130,7 @@ function go() {
                 split[filter][1] = parseInt(split[filter][1].trim())
             }
             forcedMatches[i] = split
+            if (!restrictedMembers.includes(i)) restrictedMembers.push(i)
         }
     }
 
@@ -208,11 +212,20 @@ function go() {
         } else return true;
     }
 
+    let recentlyGiven = []
+    let giveAttempts = 0
     for (let i = 0, member = 0; i < matchAssignments.length; i++) {
-        while (!(checkRestrictions(matchAssignments[i][0], matchAssignments[i][1], member) && checkPositionRestrictions(matchAssignments[i][2], member)))
+        while (!(checkRestrictions(matchAssignments[i][0], matchAssignments[i][1], member) && checkPositionRestrictions(matchAssignments[i][2], member)) || (recentlyGiven.includes(parseInt(member)) && giveAttempts < teamMembers.length)) {
             member = (member + 1) % teamMembers.length
-        if (matchAssignments[i].length === 3) teamMemberSessions[member].push(matchAssignments[i])
+            giveAttempts++
+        }
+        if (matchAssignments[i].length === 3) {
+            teamMemberSessions[member].push(matchAssignments[i])
+            recentlyGiven.push(member)
+            if (recentlyGiven.length > positions.length + 2 || recentlyGiven.length > teamMembers.length) recentlyGiven.shift()
+        }
         member = (member + 1) % (teamMembers.length)
+        giveAttempts = 0
     }
 
     //#endregion Assign the sessions to each person
