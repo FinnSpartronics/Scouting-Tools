@@ -340,6 +340,8 @@ function displayEdit() {
 
     output.innerText = ""
 
+    let totals = []
+
     let inputid = 0
     for (let m in data["members"]) {
         let element = document.createElement("div")
@@ -441,14 +443,22 @@ function displayEdit() {
 
         let total = document.createElement("div")
         total.innerHTML += "<br/>" + matches + " total matches"
+        totals.push(matches)
         element.appendChild(total)
     }
+
+    let x = 0;
+    for (let a of totals) x += a;
+    x /= totals.length
+    console.log("Av Matches Per Person: " + Math.round(x))
 }
 
 function display() {
     let output = document.querySelector("#output")
 
     output.innerText = ""
+
+    let totals = []
 
     for (let m in data["members"]) {
         let element = document.createElement("div")
@@ -465,9 +475,15 @@ function display() {
             matches += x[1] - x[0] + 1
         }
         element.innerHTML += "<br/>" + matches + " total matches"
+        totals.push(matches)
 
         output.appendChild(element)
     }
+
+    let x = 0;
+    for (let a of totals) x += a;
+    x /= totals.length
+    console.log("Av Matches Per Person: " + Math.round(x))
 }
 
 function checkValidity() {
