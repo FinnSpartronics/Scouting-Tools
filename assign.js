@@ -53,15 +53,17 @@ function jsonToCSV(json) {
     let csv = []
     let currentLine = ""
 
+    let order = []
     for (let key of Object.keys(json[0])) {
         currentLine += item(key)+","
+        order.push(key)
     }
     currentLine = currentLine.substring(0, currentLine.length - 1)
     csv.push(currentLine)
     currentLine = ""
 
     for (let i = 0; i < json.length; i++) {
-        for (let key of Object.keys(json[i])) {
+        for (let key of order) {
             currentLine += item(json[i][key])+","
         }
         currentLine = currentLine.substring(0, currentLine.length - 1)
@@ -241,8 +243,11 @@ function go() {
         }
     }
 
+    let matchKey = document.querySelector("#match_key").value
     for (let m = 1; m <= matchesNeeded; m++) {
-        data["table"].push({"#": m})
+        let match = {}
+        match[matchKey] = m
+        data["table"].push(match)
     }
 
     let matchScoutedConfirmation = {}
